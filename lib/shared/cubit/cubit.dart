@@ -1,139 +1,121 @@
 // ignore_for_file: prefer_const_constructors, avoid_print, unused_local_variable, avoid_function_literals_in_foreach_calls, invalid_required_positional_param
 
+// import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_first_app/modules/archived_tasks/archived_tasks_screen.dart';
-import 'package:flutter_first_app/modules/done_tasks/done_tasks_screen.dart';
-import 'package:flutter_first_app/modules/new_tasks/new_tasks_screen.dart';
 import 'package:flutter_first_app/shared/cubit/states.dart';
-import 'package:sqflite/sqflite.dart';
+// import 'package:sqflite/sqflite.dart';
 
-class AppCubit extends Cubit<AppStates> {
-  AppCubit() : super(AppInitialState());
+import '../../modules/business/business_screen.dart';
+import '../../modules/science/science_screen.dart';
+import '../../modules/settings/settings.dart';
+import '../../modules/sports/sports_screen.dart';
+import '../network/remote/dio_helper.dart';
 
-  static AppCubit get(context) => BlocProvider.of(context);
+class NewsCubit extends Cubit<NewsStates> {
+  NewsCubit() : super(NewsInitialState());
+
+  static NewsCubit get(context) => BlocProvider.of(context);
 
   int currentIndex = 0;
-  bool isBottomSheetShown = false;
-  IconData fabIcon = Icons.edit;
+  IconData fabIcon = Icons.add;
 
-  List<Map> newTasks = [];
-  List<Map> doneTasks = [];
-  List<Map> archivedTasks = [];
+  List<dynamic> business = [];
+  List<dynamic> science = [];
+  List<dynamic> sports = [];
+
+  List<BottomNavigationBarItem> bottomNavigationBarItems = [
+    BottomNavigationBarItem(
+      icon: Icon(Icons.business_center_outlined),
+      label: 'Business',
+    ),
+    BottomNavigationBarItem(
+      icon: Icon(Icons.science_outlined),
+      label: 'Science',
+    ),
+    BottomNavigationBarItem(
+      icon: Icon(Icons.sports_baseball_outlined),
+      label: 'Sports',
+    ),
+    BottomNavigationBarItem(
+      icon: Icon(Icons.settings_outlined),
+      label: 'Settings',
+    ),
+  ];
 
   List<Widget> screens = [
-    NewTasksScreen(),
-    DoneTasksScreen(),
-    ArchivedTasksScreen(),
+    BusinessScreen(),
+    ScienceScreen(),
+    SportsScreen(),
+    SettingsScreen(),
   ];
 
   List<String> titles = [
-    'New Tasks',
-    'Done Tasks',
-    'Archived Tasks',
+    'Business',
+    'Science',
+    'Sports',
+    'Settings',
   ];
-
-  late Database todoDatabase;
 
   void changeIndex(int index) {
     currentIndex = index;
-    emit(AppChangeBottomNavBarState());
+    if (index == 1) getScienceNews();
+    if (index == 2) getSportsNews();
+    emit(NewsChangeBottomNavBarState());
   }
 
-  void createDataBase() async {
-    openDatabase(
-      'tasks.db',
-      version: 1,
-      onCreate: (Database todoDatabase, int version) {
-        print('Database created');
-        todoDatabase
-            .execute(
-              'CREATE TABLE tasks (id INTEGER PRIMARY KEY, title TEXT, date TEXT, time TEXT, status TEXT)',
-            )
-            .then((value) => print('Table created'))
-            .catchError((error) {
-          print('Error when creating table ${error.toString()}');
-        });
-      },
-      onOpen: (todoDatabase) async {
-        print('Database opened');
-        getDataFromDatabase(todoDatabase);
+  void getBusinessNews() {
+    emit(NewsGetBusinessLoadingState());
+    DioHelper.getData(
+      url: 'top-headlines',
+      query: {
+        'country': 'eg',
+        'category': 'business',
+        'apiKey': '664ff3f563b148b8b3d7a50ae2945ec1',
       },
     ).then((value) {
-      todoDatabase = value;
-      emit(AppCreateDatabaseState());
+      business = value.data['articles'];
+      emit(NewsGetBusinessSuccessState());
+    }).catchError((error) {
+      print(error.toString());
+      emit(NewsGetBusinessErrorState(error.toString()));
     });
   }
 
-  insertToDataBase({
-    required String title,
-    required String date,
-    required String time,
-  }) async {
-    todoDatabase.transaction((txn) async {
-      txn
-          .rawInsert(
-              'INSERT INTO tasks(title, date, time, status) VALUES ("$title", "$date", "$time", "new")')
-          .then((value) {
-        print('$value inserted successfully');
-        emit(AppInsertToDatabaseState());
-        getDataFromDatabase(todoDatabase);
-      }).catchError((error) {
-        print('Error when inserting ${error.toString()}');
-      });
+  void getScienceNews() {
+    emit(NewsGetScienceLoadingState());
+    DioHelper.getData(
+      url: 'top-headlines',
+      query: {
+        'country': 'eg',
+        'category': 'science',
+        'apiKey': '664ff3f563b148b8b3d7a50ae2945ec1',
+      },
+    ).then((value) {
+      science = value.data['articles'];
+      emit(NewsGetScienceSuccessState());
+    }).catchError((error) {
+      print(error.toString());
+      emit(NewsGetScienceErrorState(error.toString()));
     });
   }
 
-  void getDataFromDatabase(todoDatabase) async {
-    emit(AppGetDatabaseLoadingState());
-    newTasks = [];
-    doneTasks = [];
-    archivedTasks = [];
-    todoDatabase.rawQuery('SELECT * FROM tasks').then((value) {
-      print('From get $value');
-      value.forEach((element) {
-        if (element['status'] == 'new') {
-          newTasks.add(element);
-        } else if (element['status'] == 'done') {
-          doneTasks.add(element);
-        } else if (element['status'] == 'archived') {
-          archivedTasks.add(element);
-        }
-      });
-      print(newTasks);
-      emit(AppGetDatabaseState());
+  void getSportsNews() {
+    emit(NewsGetSportsLoadingState());
+    DioHelper.getData(
+      url: 'top-headlines',
+      query: {
+        'country': 'eg',
+        'category': 'sports',
+        'apiKey': '664ff3f563b148b8b3d7a50ae2945ec1',
+      },
+    ).then((value) {
+      sports = value.data['articles'];
+      emit(NewsGetSportsSuccessState());
+    }).catchError((error) {
+      print(error.toString());
+      emit(NewsGetSportsErrorState(error.toString()));
     });
-  }
-
-  void updateDataFromDatabase({
-    required String status,
-    required int id,
-  }) async {
-    todoDatabase.rawUpdate(
-        'UPDATE tasks SET status = ? WHERE id = ?', [status, id]).then((value) {
-      print('$value updated successfully');
-      getDataFromDatabase(todoDatabase);
-      emit(AppUpdateDatabaseState());
-    });
-  }
-
-  void deleteDataFromDatabase({
-    required int id,
-  }) async {
-    todoDatabase
-        .rawDelete('DELETE FROM tasks WHERE id = ?', [id]).then((value) {
-      print('$value deleted successfully');
-      getDataFromDatabase(todoDatabase);
-      emit(AppDeleteDatabaseState());
-    });
-  }
-
-  void changeBottomSheetState({
-    required bool isShown,
-    required IconData icon,
-  }) {
-    isBottomSheetShown = isShown;
-    fabIcon = icon;
-    emit(AppChangeBottomSheetState());
   }
 }
