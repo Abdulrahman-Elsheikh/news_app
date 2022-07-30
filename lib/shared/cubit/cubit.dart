@@ -118,4 +118,11 @@ class NewsCubit extends Cubit<NewsStates> {
       emit(NewsGetSportsErrorState(error.toString()));
     });
   }
+
+  bool isDark = false;
+
+  void changeAppMode() {
+    isDark = !isDark;
+    emit(AppChangeModeState());
+  }
 }

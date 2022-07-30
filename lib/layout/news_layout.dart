@@ -29,7 +29,14 @@ class NewsLayout extends StatelessWidget {
             key: scaffoldKey,
             appBar: AppBar(
               title: Text(cubit.titles[cubit.currentIndex]),
-              actions: [IconButton(icon: Icon(Icons.search), onPressed: () {})],
+              actions: [
+                IconButton(icon: Icon(Icons.search), onPressed: () {}),
+                IconButton(
+                    icon: Icon(Icons.brightness_4_outlined),
+                    onPressed: () {
+                      NewsCubit.get(context).changeAppMode();
+                    })
+              ],
             ),
             body: ConditionalBuilder(
                 condition: state is! NewsGetBusinessLoadingState,

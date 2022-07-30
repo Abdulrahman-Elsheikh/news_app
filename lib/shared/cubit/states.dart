@@ -33,3 +33,5 @@ class NewsGetSportsErrorState extends NewsStates {
 }
 
 class NewsGetSportsLoadingState extends NewsStates {}
+
+class AppChangeModeState extends NewsStates {}

@@ -217,7 +217,7 @@ Widget itemDivider() => Padding(
       ),
     );
 
-Widget buildArticleItem(article) => Padding(
+Widget buildArticleItem(article, context) => Padding(
       padding: const EdgeInsets.all(20.0),
       child: Row(
         children: [
@@ -227,7 +227,10 @@ Widget buildArticleItem(article) => Padding(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10.0),
               image: DecorationImage(
-                image: NetworkImage('${article['urlToImage']}'),
+                image: article['urlToImage'] != null
+                    ? NetworkImage('${article['urlToImage']}')
+                    : NetworkImage(
+                        'https://t4.ftcdn.net/jpg/04/70/29/97/360_F_470299797_UD0eoVMMSUbHCcNJCdv2t8B2g1GVqYgs.jpg'),
                 fit: BoxFit.cover,
               ),
             ),
@@ -246,10 +249,7 @@ Widget buildArticleItem(article) => Padding(
                     child: Text('${article['title']}',
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 18.0,
-                          fontWeight: FontWeight.w600,
-                        )),
+                        style: Theme.of(context).textTheme.bodyText1),
                   ),
                   Text('${article['publishedAt']}',
                       style: TextStyle(fontSize: 14.0, color: Colors.grey)),
@@ -261,11 +261,11 @@ Widget buildArticleItem(article) => Padding(
       ),
     );
 
-Widget articleBuilder(list) => ConditionalBuilder(
+Widget articleBuilder(list, context) => ConditionalBuilder(
     condition: list.length > 0,
     builder: (context) => ListView.separated(
         physics: BouncingScrollPhysics(),
-        itemBuilder: (context, index) => buildArticleItem(list[index]),
+        itemBuilder: (context, index) => buildArticleItem(list[index], context),
         separatorBuilder: (context, index) => itemDivider(),
         itemCount: list.length),
     fallback: (context) => Center(child: CircularProgressIndicator()));
