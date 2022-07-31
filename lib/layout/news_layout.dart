@@ -3,6 +3,8 @@
 import 'package:conditional_builder_null_safety/conditional_builder_null_safety.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_first_app/modules/search/search_screen.dart';
+import 'package:flutter_first_app/shared/components/components.dart';
 import 'package:flutter_first_app/shared/cubit/cubit.dart';
 import 'package:flutter_first_app/shared/cubit/states.dart';
 // import 'package:intl/intl.dart';
@@ -30,7 +32,11 @@ class NewsLayout extends StatelessWidget {
             appBar: AppBar(
               title: Text(cubit.titles[cubit.currentIndex]),
               actions: [
-                IconButton(icon: Icon(Icons.search), onPressed: () {}),
+                IconButton(
+                    icon: Icon(Icons.search),
+                    onPressed: () {
+                      navigateTo(context, SearchScreen());
+                    }),
                 IconButton(
                     icon: Icon(Icons.brightness_4_outlined),
                     onPressed: () {

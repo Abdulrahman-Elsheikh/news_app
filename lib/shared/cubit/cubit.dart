@@ -5,6 +5,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_first_app/shared/cubit/states.dart';
+import 'package:flutter_first_app/shared/network/local/cache_helper.dart';
 // import 'package:sqflite/sqflite.dart';
 
 import '../../modules/business/business_screen.dart';
@@ -24,6 +25,7 @@ class NewsCubit extends Cubit<NewsStates> {
   List<dynamic> business = [];
   List<dynamic> science = [];
   List<dynamic> sports = [];
+  List<dynamic> search = [];
 
   List<BottomNavigationBarItem> bottomNavigationBarItems = [
     BottomNavigationBarItem(
@@ -119,10 +121,35 @@ class NewsCubit extends Cubit<NewsStates> {
     });
   }
 
+  void getSearch(String value) {
+    emit(NewsGetSearchLoadingState());
+    search = [];
+    DioHelper.getData(
+      url: 'everything',
+      query: {
+        'q': value,
+        'apiKey': '664ff3f563b148b8b3d7a50ae2945ec1',
+      },
+    ).then((value) {
+      search = value.data['articles'];
+      emit(NewsGetSearchSuccessState());
+    }).catchError((error) {
+      print(error.toString());
+      emit(NewsGetSearchErrorState(error.toString()));
+    });
+  }
+
   bool isDark = false;
 
-  void changeAppMode() {
-    isDark = !isDark;
-    emit(AppChangeModeState());
+  void changeAppMode({bool? fromShared}) {
+    if (fromShared != null) {
+      isDark = fromShared;
+      emit(AppChangeModeState());
+    } else {
+      isDark = !isDark;
+      CacheHelper.putModeBoolean(key: 'isDark', value: isDark).then((value) {
+        emit(AppChangeModeState());
+      });
+    }
   }
 }

@@ -2,6 +2,7 @@
 
 import 'package:conditional_builder_null_safety/conditional_builder_null_safety.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_first_app/modules/web_view/web_view_screen.dart';
 // import 'package:flutter_first_app/shared/cubit/cubit.dart';
 
 Widget defaultButton({
@@ -217,55 +218,67 @@ Widget itemDivider() => Padding(
       ),
     );
 
-Widget buildArticleItem(article, context) => Padding(
-      padding: const EdgeInsets.all(20.0),
-      child: Row(
-        children: [
-          Container(
-            width: 120.0,
-            height: 120.0,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10.0),
-              image: DecorationImage(
-                image: article['urlToImage'] != null
-                    ? NetworkImage('${article['urlToImage']}')
-                    : NetworkImage(
-                        'https://t4.ftcdn.net/jpg/04/70/29/97/360_F_470299797_UD0eoVMMSUbHCcNJCdv2t8B2g1GVqYgs.jpg'),
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
-          SizedBox(
-            width: 20.0,
-          ),
-          Expanded(
-            child: Container(
+Widget buildArticleItem(article, context) => InkWell(
+      onTap: () {
+        navigateTo(
+          context,
+          WebViewScreen(article['url']),
+        );
+      },
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Row(
+          children: [
+            Container(
+              width: 120.0,
               height: 120.0,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Text('${article['title']}',
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.bodyText1),
-                  ),
-                  Text('${article['publishedAt']}',
-                      style: TextStyle(fontSize: 14.0, color: Colors.grey)),
-                ],
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10.0),
+                image: DecorationImage(
+                  image: article['urlToImage'] != null
+                      ? NetworkImage('${article['urlToImage']}')
+                      : NetworkImage(
+                          'https://t4.ftcdn.net/jpg/04/70/29/97/360_F_470299797_UD0eoVMMSUbHCcNJCdv2t8B2g1GVqYgs.jpg'),
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
-          )
-        ],
+            SizedBox(
+              width: 20.0,
+            ),
+            Expanded(
+              child: Container(
+                height: 120.0,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text('${article['title']}',
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodyText1),
+                    ),
+                    Text('${article['publishedAt']}',
+                        style: TextStyle(fontSize: 14.0, color: Colors.grey)),
+                  ],
+                ),
+              ),
+            )
+          ],
+        ),
       ),
     );
 
-Widget articleBuilder(list, context) => ConditionalBuilder(
+Widget articleBuilder(list, context, {isSearch = false}) => ConditionalBuilder(
     condition: list.length > 0,
     builder: (context) => ListView.separated(
         physics: BouncingScrollPhysics(),
         itemBuilder: (context, index) => buildArticleItem(list[index], context),
         separatorBuilder: (context, index) => itemDivider(),
         itemCount: list.length),
-    fallback: (context) => Center(child: CircularProgressIndicator()));
+    fallback: (context) =>
+        isSearch ? Container() : Center(child: CircularProgressIndicator()));
+
+void navigateTo(context, widget) =>
+    Navigator.push(context, MaterialPageRoute(builder: (context) => widget));
